@@ -3,7 +3,9 @@
 
 bothModelFits <- function() {
   
-  for (maxrot in c(90)) {  
+  cat('fitting models to groups: 45, 60 and 90\n')
+  
+  for (maxrot in c(45,60,90)) {  
     
     df <- loadSTLdata(maxrots=c(maxrot))
     
@@ -19,11 +21,17 @@ bothModelFits <- function() {
     w_par <- c()
     attributionMSE <- c()
     
+    count <- 0
+    maxcount <- 2 * (length(participants) + 1)
+    
     for (targ in c('arc', 'point')) {
       
       subdf <- df[which(df$target == targ),]
       
       for (ppid in c('all', participants)) {
+        
+        count <- count + 1
+        cat(sprintf('working on fits: %d / %d (in %d group)\n', count, maxcount, maxrot))
         
         if (ppid == 'all') {
           pplist <- participants
