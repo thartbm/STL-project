@@ -1,7 +1,7 @@
 
 plotData <- function(models=FALSE, target='inline') {
   
-  width = 3.5
+  width = 6
   height = 8
   if (models) {
     filename=sprintf('doc/fig4_model_fits.%s',target)
@@ -124,8 +124,8 @@ plotData <- function(models=FALSE, target='inline') {
 
 plotTaskErrorEffects <- function(target='inline',posthocs=TRUE) {
   
-  width = 8
-  height = 3.5
+  width = 6
+  height = 8
   if (target == 'pdf') {
     pdf(file='doc/fig3_taskerror.pdf', width=width, height=height)
   }
@@ -221,8 +221,8 @@ plotTaskErrorEffects <- function(target='inline',posthocs=TRUE) {
 
 plotModelMSEs <- function(maxrots=c(45,60,90), target='inline') {
   
-  width = 4
-  height = 4
+  width = 5
+  height = 5
   if (target == 'pdf') {
     pdf(file='doc/fig5_mses.pdf', width=width, height=height)
   }
@@ -260,7 +260,7 @@ plotModelMSEs <- function(maxrots=c(45,60,90), target='inline') {
     idx <- which(df$rot == rot)
     points( x = df$attributionMSE[idx], 
             y = df$cappedMSE[idx],
-            pch=16, cex=1.5,
+            pch=16, cex=1.25,
             col=col)
     # print(c(df$attributionMSE[idx],df$cappedMSE[idx]))
   }
