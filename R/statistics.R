@@ -1,72 +1,154 @@
 
 `%notin%` <- Negate(`%in%`)
 
-bothModelFits <- function() {
+# bothModelFits <- function() {
+#   
+#   for (maxrot in c(45,60,90)) {  
+#     
+#     df <- loadSTLdata(maxrots=c(maxrot))
+#     
+#     participants <- unique(df$participant)
+#     
+#     participant <- c()
+#     target <- c()
+#     n <- c()
+#     r_par <- c()
+#     c_par <- c()
+#     cappedMSE <- c()
+#     s_par <- c()
+#     w_par <- c()
+#     attributionMSE <- c()
+#     
+#     for (targ in c('arc', 'point')) {
+#       
+#       subdf <- df[which(df$target == targ),]
+#       
+#       for (ppid in c('all', participants)) {
+#         
+#         if (ppid == 'all') {
+#           pplist <- participants
+#         } else {
+#           pplist <- c(ppid)
+#         }
+#         
+#         capped_par      <- cappedFit( participants=pplist, data=subdf)
+#         attribution_par <- STLFit(    participants=pplist, data=subdf)
+#         
+#         participant <- c(participant, ppid)
+#         target <- c(target, targ)
+#         n <- c(n, length(which(subdf$participant %in% pplist)))
+#         r_par <- c(r_par, capped_par['r'])
+#         c_par <- c(c_par, capped_par['c'])
+#         s_par <- c(s_par, attribution_par['s'])
+#         w_par <- c(w_par, attribution_par['w'])
+#         cappedMSE <- c(cappedMSE, cappedMSE(par        = capped_par,
+#                                             rotations  = subdf$rotation,
+#                                             deviations = subdf$response) )
+#         
+#         attributionMSE <- c(attributionMSE, STLErrors(par        = attribution_par,
+#                                                       rotations  = subdf$rotation,
+#                                                       deviations = subdf$response) )
+#         
+#         
+#       }
+#       
+#     }
+#     
+#     mf <- data.frame(participant,
+#                      target,
+#                      n,
+#                      'r'=r_par,
+#                      'c'=c_par,
+#                      cappedMSE,
+#                      's'=s_par,
+#                      'w'=w_par,
+#                      attributionMSE)
+#     
+#     write.csv(mf, file=sprintf('data/modelFits_%d.csv',maxrot), quote=FALSE, row.names=FALSE)
+#     
+#   }
+#   
+# }
+
+
+
+fitAllModels <- function() {
   
-  for (maxrot in c(90)) {  
+  ncores <- parallel::detectCores()
+  clust  <- parallel::makeCluster(max(c(1,floor(ncores*0.75))))
+  
+  parallel::clusterCall(clust, function() { source('R/cappedModel.R') })
+  parallel::clusterCall(clust, function() { source('R/attributionModel.R') })
+  
+  for (maxrot in c(45,60,90)) {
+  # for (maxrot in c(45)) {
     
     df <- loadSTLdata(maxrots=c(maxrot))
+
+    rotdat <- NA
     
-    participants <- unique(df$participant)
-    
-    participant <- c()
-    target <- c()
-    n <- c()
-    r_par <- c()
-    c_par <- c()
-    cappedMSE <- c()
-    s_par <- c()
-    w_par <- c()
-    attributionMSE <- c()
-    
-    for (targ in c('arc', 'point')) {
+    for (target in c('arc','point')) {
+    # for (target in c('arc')) {
       
-      subdf <- df[which(df$target == targ),]
+      participants <- c(unique(df$participant),'all')
+      # participants <- unique(df$participant)[1:3]
+
+      a <- parallel::parApply(cl = clust,
+                              X = matrix(participants),
+                              MARGIN = 1,
+                              FUN = fitParticipantModels,
+                              df = df,
+                              target = target)
       
-      for (ppid in c('all', participants)) {
-        
-        if (ppid == 'all') {
-          pplist <- participants
-        } else {
-          pplist <- c(ppid)
-        }
-        
-        capped_par      <- cappedFit( participants=pplist, data=subdf)
-        attribution_par <- STLFit(    participants=pplist, data=subdf)
-        
-        participant <- c(participant, ppid)
-        target <- c(target, targ)
-        n <- c(n, length(which(subdf$participant %in% pplist)))
-        r_par <- c(r_par, capped_par['r'])
-        c_par <- c(c_par, capped_par['c'])
-        s_par <- c(s_par, attribution_par['s'])
-        w_par <- c(w_par, attribution_par['w'])
-        cappedMSE <- c(cappedMSE, cappedMSE(par        = capped_par,
-                                            rotations  = subdf$rotation,
-                                            deviations = subdf$response) )
-        
-        attributionMSE <- c(attributionMSE, STLErrors(par        = attribution_par,
-                                                      rotations  = subdf$rotation,
-                                                      deviations = subdf$response) )
-        
-        
+      a <- as.data.frame(t(a))
+      
+      if (is.data.frame(rotdat)) {
+        rotdat <- rbind(rotdat, a)
+      } else {
+        rotdat <- a
       }
       
     }
     
-    mf <- data.frame(participant,
-                     target,
-                     n,
-                     'r'=r_par,
-                     'c'=c_par,
-                     cappedMSE,
-                     's'=s_par,
-                     'w'=w_par,
-                     attributionMSE)
-    
-    write.csv(mf, file=sprintf('data/modelFits_%d.csv',maxrot), quote=FALSE, row.names=FALSE)
+    write.csv(rotdat, file=sprintf('data/modelFits_%d.csv',maxrot), quote=FALSE, row.names=FALSE)
     
   }
+  
+  parallel::stopCluster(clust)
+  
+}
+
+
+fitParticipantModels <- function(ppid, df, target) {
+  
+  subdf <- df[which(df$target == target),]
+  
+  if (ppid == 'all') {
+    pplist <- unique(df$participant)
+  } else {
+    pplist <- c(ppid)
+  }
+  
+  capped_par      <- cappedFit( participants=pplist, data=subdf)
+  attribution_par <- STLFit(    participants=pplist, data=subdf)
+  
+  
+  return(
+    c('participant'    = ppid,
+      'target'         = target,
+      'N'              = length(which(subdf$participant %in% pplist)),
+      'r'              = unname(capped_par['r']),
+      'c'              = unname(capped_par['c']),
+      'cappedMSE'      = cappedMSE(par        = capped_par,
+                                   rotations  = subdf$rotation,
+                                   deviations = subdf$response),
+      's'              = unname(attribution_par['s']),
+      'w'              = unname(attribution_par['w']),
+      'attributionMSE' = STLErrors(par        = attribution_par,
+                                   rotations  = subdf$rotation,
+                                   deviations = subdf$response)
+    )
+  )
   
 }
 
