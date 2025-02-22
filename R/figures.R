@@ -34,6 +34,8 @@ plotData <- function(models=FALSE, target='inline') {
     
     df <- loadSTLdata(average=median, maxrots=c(maxrot))
     
+    # print(sprintf('data/modelFits_%d.csv', maxrot))
+    
     if (models) {
       fits <- read.csv(sprintf('data/modelFits_%d.csv', maxrot), stringsAsFactors = FALSE)
       fits <- fits[which(fits$participant=='all'),]
