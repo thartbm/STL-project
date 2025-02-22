@@ -78,6 +78,7 @@ source('R/figures.R')
 
 # Download and prepare the data
 
+All of these steps take a bit of time for various reasons. But they only need to be taken once.
 
 ```{r eval=FALSE, include=FALSE}
 # it's not necessary to run this code all the time, so eval=FALSE stops it from running
@@ -90,11 +91,11 @@ Download_data()
 # This creates STL based files: the difference in no-cursor reach directions in the trials before and after each perturbed trial, with the rotation size, trial number and participant indicated. There are 4 files, two each for groups doing rotations up to 45 degrees and up to 60 degrees, and for those, one file each for point targets and arc targets.
 Preprocess_all_files()
 
-# Then we fit the two models to the point and arc target data for each of the participants. This step in particular might take a long time, as it fits 2 models each to the data of 74 participants.
+# Then we fit the two models to the point and arc target data for each of the participants. This step in particular might take a long time, as it fits 2 models each to the data of 129 participants.
 bothModelFits()
 
-```
 
+```
 
 
 
