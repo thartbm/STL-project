@@ -29,7 +29,14 @@ In this project we ask two main questions about implicit adaptation using a sing
 
 # Setup
 
-First, we'll load all the scripts and functions that we need to run the analyses.
+To start, we make sure the R environment is as ready as possible:
+
+```{r eval=F}
+renv::restore()
+renv::install('remotes')
+```
+
+Then, we'll load all the scripts and functions that we need to run the analyses.
 
 Some of the code requires our Reach package to be installed. Find it here, with installation instructions: [https://github.com/thartbm/Reach](https://github.com/thartbm/Reach)
 
@@ -45,7 +52,7 @@ if ('Reach' %in% ip[,'Package']) {
 }
 ```
 
-
+And we'll load all the custom made code for this project:
 
 ```{r}
 # this has functions for downloading, pre-processing and accessing the data:
