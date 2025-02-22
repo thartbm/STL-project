@@ -31,7 +31,21 @@ In this project we ask two main questions about implicit adaptation using a sing
 
 First, we'll load all the scripts and functions that we need to run the analyses.
 
-Some of the code requires Marius' personal package to be installed. Find it here, with installation instructions: [https://github.com/thartbm/Reach](https://github.com/thartbm/Reach)
+Some of the code requires our Reach package to be installed. Find it here, with installation instructions: [https://github.com/thartbm/Reach](https://github.com/thartbm/Reach)
+
+```{r eval=F}
+library('remotes')
+ip <- installed.packages()
+if ('Reach' %in% ip[,'Package']) {
+  if (ip[which(ip[,'Package'] == 'Reach'),'Version'] < "2025.02.16") {
+    remotes::install_github('thartbm/Reach')
+  }
+} else {
+  remotes::install_github('thartbm/Reach')
+}
+```
+
+
 
 ```{r}
 # this has functions for downloading, pre-processing and accessing the data:
