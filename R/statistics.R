@@ -262,7 +262,8 @@ getModelLikelihoods <- function() {
 
 taskErrorANOVAs <- function() {
   
-  for (maxrot in c(45,60,90)) {
+  # for (maxrot in c(45,60,90)) {
+  for (maxrot in c(45,60)) {    
     
     cat(sprintf('\n=== %d° GROUP\n\n',maxrot))
     
