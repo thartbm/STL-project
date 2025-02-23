@@ -32,6 +32,7 @@ plotData <- function(models=FALSE, target='inline') {
     title(ylab='reach aftereffect [°]',line=2.25)
     title(xlab='rotation [°]',line=2.25)
     
+    
     df <- loadSTLdata(average=median, maxrots=c(maxrot))
     
     # print(sprintf('data/modelFits_%d.csv', maxrot))
@@ -371,6 +372,133 @@ plotTaskErrorEffects <- function(target='inline',posthocs=TRUE) {
   
 }
 
+plotTaskErrorEffectsParmin <- function(target='inline',posthocs=TRUE) {
+  
+  width  = 8
+  height = 3
+  dpi    = 300
+  
+  filename=sprintf('doc/fig3_taskerror_parmin.%s',target)
+
+  if (target == 'pdf') {
+    pdf(file   = filename, 
+        width  = width, 
+        height = height)
+  }
+  if (target == 'svg') {
+    svglite::svglite( filename = filename,
+                      width = width,
+                      height = height,
+                      fix_text_size = FALSE)
+  }
+  if (target == 'png') {
+    png( filename = filename,
+         width = width*dpi,
+         height = height*dpi,
+         res = dpi
+    )
+  }
+  if (target == 'tiff') {
+    tiff( filename = filename,
+          compression = 'lzw',
+          width = width*dpi,
+          height = height*dpi,
+          res = dpi
+    )
+  }
+  
+  left  <- 0.75
+  right <- 0.05
+  
+  deg15 <- (width - ((left + right) * 2)) / 7
+  
+  layout(mat=matrix(c(1:2), ncol=2), widths=c(deg15*3,deg15*4))
+  par(mai=c(0.75,left,0.4,right))
+  
+  
+  pval.df <- taskErrorPostHocs()
+  
+  for (maxrot in c(45,60)) {
+    
+    plot(x=-1000,y=-1000,
+         main=sprintf('%d° max rotation',maxrot),ylab='',xlab='',
+         xlim=c(0,maxrot+1),
+         # xlim=c(0,91),
+         ylim=c(-2.5,4.5),
+         ax=F,bty='n')
+    
+    title(ylab='initial change difference [°]',line=2.25)
+    title(xlab='rotation [°]',line=2.25)
+    
+    df <- loadSTLdata(average=median, maxrots=c(maxrot))
+    
+    diffdf <- aggregate(response ~ participant + rotation, data=df, FUN=diff)
+    diffdf$response <- diffdf$response
+    
+    CIdf <- aggregate(response ~ rotation, data=diffdf, FUN=Reach::getConfidenceInterval, method='b', resamples=2000)
+    avgdf <- aggregate(response ~ rotation, data=diffdf, FUN=mean)
+    
+    colors <- c('#9900FFFF', '#9900FF33')
+    
+    lines(x=c(1,maxrot),y=c(0,0),col='#999999',lty=2)
+    
+    # tCI <- CIdf[which(CIdf$target == target),]
+    # tavg <- avgdf[which(avgdf$target == target),]
+    tCI <- CIdf
+    tavg <- avgdf
+    
+    X <- c(tCI$rotation, rev(tCI$rotation))
+    Y <- c(tCI$response[,1], rev(tCI$response[,2]))
+    polygon(X,Y,border=NA,col=colors[2])
+    
+    lines(x=tavg$rotation, y=tavg$response, col=colors[1])
+    
+    # add FDR corrected p-values:
+    mr.pval.df <- pval.df[which(pval.df$group == maxrot),]
+    
+    if (posthocs) {
+      for (rotation in mr.pval.df$rotation) {
+        
+        pval <- mr.pval.df$pval[which(mr.pval.df$rotation == rotation)]
+        pval.adj <- mr.pval.df$pval.adj[which(mr.pval.df$rotation == rotation)]
+        
+        pch <- 1
+        col <- '#9900FF33'
+        if (pval < 0.05) {
+          col <- '#9900FFFF'
+        }
+        if (pval.adj < 0.05) {
+          pch <- 16
+        }
+        
+        points( x = rotation,
+                y = -2,
+                pch=pch,
+                col=col)
+        
+      }
+    }
+    
+    if (maxrot == 45) {
+      axis(side=1,at=c(1,5,10,15,20,25,30,35,40,45),cex.axis=0.75)
+    }
+    if (maxrot == 60) {
+      axis(side=1,at=c(1,5,10,15,20,25,30,40,50,60),cex.axis=0.75)
+    }
+    if (maxrot == 90) {
+      axis(side=1,at=c(1,5,10,15,20,30,40,50,70,90),cex.axis=0.75)
+    }
+    axis(side=2,at=c(-2,0,2,4),cex.axis=0.75)
+    
+    
+  }
+  
+  if (target %in% c('pdf','svg','png','tiff')) {
+    dev.off()
+  }
+  
+  
+}
 
 
 plotModelMSEs <- function(maxrots=c(45,60,90), target='inline') {
