@@ -1,134 +1,11 @@
 
-plotData <- function(models=FALSE, target='inline') {
-  
-  width = 4
-  height = 8
-  if (models) {
-    filename=sprintf('doc/fig4_model_fits.%s',target)
-  } else {
-    filename=sprintf('doc/fig2_alldata.%s',target)
-  }
-  
-  if (target == 'pdf') {
-    if (models) {
-      pdf(file=filename, width=width, height=height)
-    } else {
-      pdf(file=filename, width=width, height=height)
-    }
-  }
-  
-  layout(mat=matrix(c(1:3), ncol=1))
-  par(mar=c(3.25,3.25,2,0.1))
-  
-  for (maxrot in c(45,60,90)) {
-    
-    plot(x=-1000,y=-1000,
-         main=sprintf('%d° max rotation',maxrot),ylab='',xlab='',
-         # xlim=c(0,maxrot+1),
-         xlim=c(0,91),
-         ylim=c(-0.5,8.5),
-         ax=F,bty='n')
 
-    title(ylab='reach aftereffect [°]',line=2.25)
-    title(xlab='rotation [°]',line=2.25)
-    
-    
-    df <- loadSTLdata(average=median, maxrots=c(maxrot))
-    
-    # print(sprintf('data/modelFits_%d.csv', maxrot))
-    
-    if (models) {
-      fits <- read.csv(sprintf('data/modelFits_%d.csv', maxrot), stringsAsFactors = FALSE)
-      fits <- fits[which(fits$participant=='all'),]
-    }
-
-    CIdf <- aggregate(response ~ target + rotation, data=df, FUN=Reach::getConfidenceInterval, method='b', resamples=2000)
-    avgdf <- aggregate(response ~ target + rotation, data=df, FUN=mean)
-        for (tt in c('point','arc')) {
-      
-      if (tt == 'point') {
-        colors <- c('#0066FFFF', '#0066FF33')
-      }
-      if (tt == 'arc') {
-        colors <- c('#FF6600FF', '#FF660033')
-      }
-      
-      tCI <- CIdf[which(CIdf$target == tt),]
-      tavg <- avgdf[which(avgdf$target == tt),]
-      
-      X <- c(tCI$rotation, rev(tCI$rotation))
-      Y <- c(tCI$response[,1], rev(tCI$response[,2]))
-      polygon(X,Y,border=NA,col=colors[2])
-      
-      if (models) {
-        fit <- fits[which(fits$target == tt),]
-        # cross <- fit$c/fit$r
-        
-        lines(x=c(0,fit$c/fit$r,maxrot),
-              y=c(0,fit$c,fit$c),
-              lty=3,
-              col=colors[1],
-              lw=2)
-        
-        attpar = c('s'=fit$s, 'w'=fit$w)
-        rots = seq(0,maxrot,0.5)
-        attribution_predictions <- STLPredict(par=attpar,
-                                              rotations=rots)
-        
-        lines(x=rots,
-              y=attribution_predictions,
-              lty=2,
-              col=colors[1],
-              lw=2)
-      } else {
-        lines(x=tavg$rotation, y=tavg$response, col=colors[1], lw=2)
-      }
-      
-    }
-    
-    if (maxrot == 45) {
-      axis(side=1,at=c(1,5,10,15,20,25,30,35,40,45),cex.axis=0.75)
-    }
-    if (maxrot == 60) {
-      axis(side=1,at=c(1,5,10,15,20,25,30,40,50,60),cex.axis=0.75)
-    }
-    if (maxrot == 90) {
-      axis(side=1,at=c(1,5,10,15,20,30,40,50,70,90),cex.axis=0.75)
-    }
-    axis(side=2,at=c(0,2,4,6,8),cex.axis=0.75)
-    
-    
-    if (maxrot == 45) {
-      legend(x=20,y=2,
-             legend=c('point target', 'arc target'),
-             lwd=c(2,2),
-             col=c('#0066FFFF','#FF6600FF'),
-             bty='n')
-    }
-    if (maxrot == 60) {
-      if (models) {
-        legend(x=20,y=2,
-               legend=c('attribution model', 'capped model'),
-               lwd=c(2,2),
-               lty=c(2,3),
-               col=c('#999999','#999999'),
-               bty='n')
-      }
-    }
-    
-  }
-  
-  if (target %in% c('pdf','svg','png','tiff')) {
-    dev.off()
-  }
-  
-}
-
+# task error plots -----
 
 plotDataParmin <- function(models=FALSE, target='inline') {
   
   width  = 8
-  height = 3
+  height = 4
   dpi    = 300
   if (models) {
     filename=sprintf('doc/fig4_model_fits_parmin.%s',target)
@@ -375,7 +252,7 @@ plotTaskErrorEffects <- function(target='inline',posthocs=TRUE) {
 plotTaskErrorEffectsParmin <- function(target='inline',posthocs=TRUE) {
   
   width  = 8
-  height = 3
+  height = 4
   dpi    = 300
   
   filename=sprintf('doc/fig3_taskerror_parmin.%s',target)
@@ -499,6 +376,249 @@ plotTaskErrorEffectsParmin <- function(target='inline',posthocs=TRUE) {
   
   
 }
+
+
+plotAverageIRDs <- function(target='inline') {
+  
+  width  = 8
+  height = 4
+  dpi    = 300
+  
+  filename=sprintf('doc/fig3+_average_IRDs.%s',target)
+  
+  if (target == 'pdf') {
+    pdf(file   = filename, 
+        width  = width, 
+        height = height)
+  }
+  if (target == 'svg') {
+    svglite::svglite( filename = filename,
+                      width = width,
+                      height = height,
+                      fix_text_size = FALSE)
+  }
+  if (target == 'png') {
+    png( filename = filename,
+         width = width*dpi,
+         height = height*dpi,
+         res = dpi
+    )
+  }
+  if (target == 'tiff') {
+    tiff( filename = filename,
+          compression = 'lzw',
+          width = width*dpi,
+          height = height*dpi,
+          res = dpi
+    )
+  }
+  
+  left  <- 0.75
+  right <- 0.05
+  
+  deg15 <- (width - ((left + right) * 2)) / 7
+  
+  layout(mat=matrix(c(1:2), ncol=2))
+  par(mai=c(0.75,left,0.4,right))
+  
+  # set up color map:
+  
+  df <- loadSTLdata(average=median, maxrots=c(45,60))
+  all_rots <- sort(unique(df$rotation))
+  
+  cols <- list()
+  for (rot in all_rots) {
+    cols[[sprintf('%d',rot)]] <- Reach::colorMix('#FF000066','#0000FF66',c(rot,max(all_rots)-rot))
+  }
+  
+  
+  
+  for (maxrot in c(45,60)) {
+    
+    plot(x=-1000,y=-1000,
+         main=sprintf('%d° max rotation',maxrot),ylab='',xlab='',
+         # xlim=c(0,maxrot+1),
+         xlim=c(-12,18),
+         ylim=c(-12,18),
+         ax=F,bty='n',asp=1)
+    
+    title(ylab='arc initial reach deviation [°]',line=2.25)
+    title(xlab='dot initial reach deviation [°]',line=2.25)
+    
+    lines(x=c(-12,18),
+          y=c(0,0),
+          lty=1,col='#666666')
+    lines(x=c(0,0),
+          y=c(-12,18),
+          lty=1,col='#666666')
+    lines(x=c(-12,18),
+          y=c(-12,18),
+          lty=1,col='#666666')
+    
+    df <- loadSTLdata(average=median, maxrots=c(maxrot))
+    
+
+    # ttagg <- aggregate(response ~ target + participant, data=df, FUN=mean)
+    # 
+    # points(x = ttagg$response[which(ttagg$target=='point')],
+    #        y = ttagg$response[which(ttagg$target=='arc')],
+    #        pch = 16,
+    #        col = '#9900FF99')
+    
+    rotations <- unique(df$rotation)
+    
+    for (rot in rotations) {
+      
+      rot_df <- df[which(df$rotation == rot),]
+      
+      points(x = rot_df$response[which(rot_df$target=='point')],
+             y = rot_df$response[which(rot_df$target=='arc')],
+             pch = 16,
+             col = cols[[sprintf('%d',rot)]])
+      
+      
+    }
+    
+    axis(side=1,at=c(-12,-6,0,6,12,18),cex.axis=0.75)
+    axis(side=2,at=c(-12,-6,0,6,12,18),cex.axis=0.75)
+    
+  }
+  
+  
+  
+  if (target %in% c('pdf','svg','png','tiff')) {
+    dev.off()
+  }
+  
+}
+
+# initial reach deviation over rotation -----
+
+plotData <- function(models=FALSE, target='inline') {
+  
+  width = 4
+  height = 8
+  if (models) {
+    filename=sprintf('doc/fig4_model_fits.%s',target)
+  } else {
+    filename=sprintf('doc/fig2_alldata.%s',target)
+  }
+  
+  if (target == 'pdf') {
+    if (models) {
+      pdf(file=filename, width=width, height=height)
+    } else {
+      pdf(file=filename, width=width, height=height)
+    }
+  }
+  
+  layout(mat=matrix(c(1:3), ncol=1))
+  par(mar=c(3.25,3.25,2,0.1))
+  
+  for (maxrot in c(45,60,90)) {
+    
+    plot(x=-1000,y=-1000,
+         main=sprintf('%d° max rotation',maxrot),ylab='',xlab='',
+         # xlim=c(0,maxrot+1),
+         xlim=c(0,91),
+         ylim=c(-0.5,8.5),
+         ax=F,bty='n')
+    
+    title(ylab='reach aftereffect [°]',line=2.25)
+    title(xlab='rotation [°]',line=2.25)
+    
+    
+    df <- loadSTLdata(average=median, maxrots=c(maxrot))
+    
+    # print(sprintf('data/modelFits_%d.csv', maxrot))
+    
+    if (models) {
+      fits <- read.csv(sprintf('data/modelFits_%d.csv', maxrot), stringsAsFactors = FALSE)
+      fits <- fits[which(fits$participant=='all'),]
+    }
+    
+    CIdf <- aggregate(response ~ target + rotation, data=df, FUN=Reach::getConfidenceInterval, method='b', resamples=2000)
+    avgdf <- aggregate(response ~ target + rotation, data=df, FUN=mean)
+    for (tt in c('point','arc')) {
+      
+      if (tt == 'point') {
+        colors <- c('#0066FFFF', '#0066FF33')
+      }
+      if (tt == 'arc') {
+        colors <- c('#FF6600FF', '#FF660033')
+      }
+      
+      tCI <- CIdf[which(CIdf$target == tt),]
+      tavg <- avgdf[which(avgdf$target == tt),]
+      
+      X <- c(tCI$rotation, rev(tCI$rotation))
+      Y <- c(tCI$response[,1], rev(tCI$response[,2]))
+      polygon(X,Y,border=NA,col=colors[2])
+      
+      if (models) {
+        fit <- fits[which(fits$target == tt),]
+        # cross <- fit$c/fit$r
+        
+        lines(x=c(0,fit$c/fit$r,maxrot),
+              y=c(0,fit$c,fit$c),
+              lty=3,
+              col=colors[1],
+              lw=2)
+        
+        attpar = c('s'=fit$s, 'w'=fit$w)
+        rots = seq(0,maxrot,0.5)
+        attribution_predictions <- STLPredict(par=attpar,
+                                              rotations=rots)
+        
+        lines(x=rots,
+              y=attribution_predictions,
+              lty=2,
+              col=colors[1],
+              lw=2)
+      } else {
+        lines(x=tavg$rotation, y=tavg$response, col=colors[1], lw=2)
+      }
+      
+    }
+    
+    if (maxrot == 45) {
+      axis(side=1,at=c(1,5,10,15,20,25,30,35,40,45),cex.axis=0.75)
+    }
+    if (maxrot == 60) {
+      axis(side=1,at=c(1,5,10,15,20,25,30,40,50,60),cex.axis=0.75)
+    }
+    if (maxrot == 90) {
+      axis(side=1,at=c(1,5,10,15,20,30,40,50,70,90),cex.axis=0.75)
+    }
+    axis(side=2,at=c(0,2,4,6,8),cex.axis=0.75)
+    
+    
+    if (maxrot == 45) {
+      legend(x=20,y=2,
+             legend=c('point target', 'arc target'),
+             lwd=c(2,2),
+             col=c('#0066FFFF','#FF6600FF'),
+             bty='n')
+    }
+    if (maxrot == 60) {
+      if (models) {
+        legend(x=20,y=2,
+               legend=c('attribution model', 'capped model'),
+               lwd=c(2,2),
+               lty=c(2,3),
+               col=c('#999999','#999999'),
+               bty='n')
+      }
+    }
+    
+  }
+  
+  if (target %in% c('pdf','svg','png','tiff')) {
+    dev.off()
+  }
+  
+}
+
 
 
 plotModelMSEs <- function(maxrots=c(45,60,90), target='inline') {
