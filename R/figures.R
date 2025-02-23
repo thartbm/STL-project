@@ -426,9 +426,11 @@ plotAverageIRDs <- function(target='inline') {
   df <- loadSTLdata(average=median, maxrots=c(45,60))
   all_rots <- sort(unique(df$rotation))
   
-  cols <- list()
-  for (rot in all_rots) {
-    cols[[sprintf('%d',rot)]] <- Reach::colorMix('#FF000066','#0000FF66',c(rot,max(all_rots)-rot))
+  colsT <- c()
+  colsO <- c()
+  for (rot in c(0:60)) {
+    colsT <- c(colsT, Reach::colorMix('#FF000055','#0000FF55',c(rot,max(all_rots)-rot)) )
+    colsO <- c(colsO, Reach::colorMix('#FF0000','#0000FF',c(rot,max(all_rots)-rot)) )
   }
   
   
@@ -474,13 +476,26 @@ plotAverageIRDs <- function(target='inline') {
       points(x = rot_df$response[which(rot_df$target=='point')],
              y = rot_df$response[which(rot_df$target=='arc')],
              pch = 16,
-             col = cols[[sprintf('%d',rot)]])
+             col = colsT[rot])
       
       
     }
     
     axis(side=1,at=c(-12,-6,0,6,12,18),cex.axis=0.75)
     axis(side=2,at=c(-12,-6,0,6,12,18),cex.axis=0.75)
+    
+    if (maxrot == 60) {
+      x = seq(-12,-3,len=61*4)
+      y = c(15,16)
+      z = matrix(seq(0,60,len=61*4),ncol=1)
+      image(x,y,z, add=TRUE, col=colsO)
+      text(x = c(-12,-7.5,-3),
+           y = c(14,14,14),
+           labels = sprintf('%d°',c(0,30,60)))
+      text(x = c(-7.5),
+           y = c(18),
+           labels = c('rotation'))
+    }
     
   }
   

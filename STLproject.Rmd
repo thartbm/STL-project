@@ -143,7 +143,7 @@ However, we can also combine all data, and get the average difference between in
 plotAverageIRDs()
 ```
 
-
+We can see a wide distribution, with initial reach deviations over 15 degrees, but also below -10 degrees. Nevertheless, it seems like a uniform distribution with no indication of bi-modality or other unexpected patterns. There is a larger concentration of blue-ish dots around the origin. Unsurprisingly, this indicates that for the smaller rotations the initial reach deviations are also smaller.
 
 # Reach deviations as a function of rotation size
 
