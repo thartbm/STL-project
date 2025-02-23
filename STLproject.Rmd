@@ -91,12 +91,18 @@ Download_data()
 # This creates STL based files: the difference in no-cursor reach directions in the trials before and after each perturbed trial, with the rotation size, trial number and participant indicated. There are 4 files, two each for groups doing rotations up to 45 degrees and up to 60 degrees, and for those, one file each for point targets and arc targets.
 Preprocess_all_files()
 
-# Then we fit the two models to the point and arc target data for each of the participants. This step in particular might take a long time, as it fits 2 models each to the data of 129 participants.
-bothModelFits()
-
-
 ```
 
+These steps also take time and have to be done only once, but they're only relevant if you're interested in the models.
+
+```{r  eval=FALSE, include=FALSE}
+# Then we fit the two models to the point and arc target data for each of the participants. This step in particular might take a long time, as it fits 2 models each to the data of 129 participants.
+#bothModelFits()
+fitAllModels() # parallelized version of the commented out function
+
+# Some also adapted to a 20 degree rotation, which we fit here with an exponential:
+getLongExpFits()
+```
 
 
 # Task error in implicit adaptation
@@ -106,8 +112,8 @@ Let's first have a look at the data.
 We have taken the difference between the post- and pre-perturbation no-cursor trials, removed any that exceeded 60 degrees in either direction, collapsed response across positive and negative rotations, and then within each participant took the median reach deviation. We also bootstrap a 95% confidence interval of the mean across participants' median reach deviations. (These should be related to t-tests: if the average in one sample falls outside the 95% confidence interval of the other sample, it was unlikely drawn from the same source.)
 
 
-```{r fig.width=6,fig.height=8}
-plotData()
+```{r fig.width=8,fig.height=4}
+plotDataParmin()
 ```
 We can see that in the arc targets, where task error is removed (or very much decreased) the reach aftereffects are also much smaller. Or in other words, it looks like the inclusion of task error in the point targets, does facilitate implicit adaptation.
 
@@ -121,15 +127,23 @@ In both cases we see a main effect of target type, as well as a main effect of r
 
 Since we are mainly interested in the effect of task error, we will dive deeper into the difference between reach aftereffects following point targets and arc target. We will make a plot of the differences, an denote whether or not the effect is significant at each rotation using t-tests, correcting the false discovery rate (using R's `p.adjust()` function with the 'fdr' method, within each group).
 
-```{r fig.width=6, fig.height=8}
-plotTaskErrorEffects()
+```{r fig.width=8, fig.height=4}
+plotTaskErrorEffectsParmin()
 ```
 
 Light purple (open) circles indicate t-tests that are not significant. Dark purple (open) circles indicate t-tests that are significant. And dark purple, filled circles indicate t-tests that are significant after FDR correction.
 
-We can see that the effect is there in both groups, but is only clearly significant in the 60 degree group. This could be because of a stimulus range effect (up to 45 degrees or up to 60 degrees) or because there are 31 participants in the 45 degree group, while the 40 degree group has a little more power with 43 participants.
+We can see that the effect is there in both groups, but is only clearly significant _for every target_ in the 60 degree group. This could be because of a stimulus range effect (up to 45 degrees or up to 60 degrees) or because there are 31 participants in the 45 degree group, while the 40 degree group has a little more power with 43 participants.
 
 The pattern seems to be that the difference is small for the smallest rotation, and again goes down for larger rotations. We might want to test this for even larger rotations: it could be that the effect of task error disappears with even larger rotations.
+
+However, we can also combine all data, and get the average difference between initial reach deviations for dot target and arc target for every rotation and participant. This might show bi-modal distributions and at least give some idea on the range of the data.
+
+```{r fig.width=8, fig.height=4}
+plotAverageIRDs()
+```
+
+
 
 # Reach deviations as a function of rotation size
 
@@ -271,5 +285,11 @@ for (target in c('pdf')) {
   plotFirstTrialFits(target=target)
 }
 
+
+for (target in c('pdf','png','svg')) {
+  plotDataParmin(target=target)
+  plotTaskErrorEffectsParmin(target=target)
+  plotAverageIRDs(target=target)
+}
 ```
 
