@@ -276,20 +276,23 @@ What we can also see is that the raw data is very noisy. The ideal response woul
 (For now, only PDF is implemented.)
 
 ```{r}
-for (target in c('pdf')) {
+for (target in c('pdf','png','svg')) {
+  # generic data plot:
   plotData(target=target)
+  plotDataParmin(target=target)
+  
+  # task error plots:
   plotTaskErrorEffects(target=target)
+  plotTaskErrorEffectsParmin(target=target)
+  plotAverageIRDs(target=target)
+  
+  # IRD over rotation:
   plotData(models=TRUE, target=target)
   plotModelMSEs(target=target)
+  # predictions off initial learning in longer tasks:
   plotLearningPrediction(target=target)
   plotFirstTrialFits(target=target)
 }
 
-
-for (target in c('pdf','png','svg')) {
-  plotDataParmin(target=target)
-  plotTaskErrorEffectsParmin(target=target)
-  plotAverageIRDs(target=target)
-}
 ```
 

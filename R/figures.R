@@ -1,17 +1,9 @@
 
+# generic plot functions -----
 
-# task error plots -----
-
-plotDataParmin <- function(models=FALSE, target='inline') {
+setupFigureFile <- function(target='inline',width=8,height=6,dpi=300,filename) {
   
-  width  = 8
-  height = 4
-  dpi    = 300
-  if (models) {
-    filename=sprintf('doc/fig4_model_fits_parmin.%s',target)
-  } else {
-    filename=sprintf('doc/fig2_alldata_parmin.%s',target)
-  }
+  #filename=sprintf('doc/fig3_taskerror_parmin.%s',target)
   
   if (target == 'pdf') {
     pdf(file   = filename, 
@@ -22,7 +14,9 @@ plotDataParmin <- function(models=FALSE, target='inline') {
     svglite::svglite( filename = filename,
                       width = width,
                       height = height,
-                      fix_text_size = FALSE)
+                      fix_text_size = FALSE) 
+                      # fix_text_size messes up figures on my machine... 
+                      # maybe it's better on yours?
   }
   if (target == 'png') {
     png( filename = filename,
@@ -39,6 +33,27 @@ plotDataParmin <- function(models=FALSE, target='inline') {
           res = dpi
     )
   }
+}
+
+
+# task error plots -----
+
+plotDataParmin <- function(models=FALSE, target='inline') {
+
+  if (models) {
+    filename=sprintf('doc/fig4_model_fits_parmin.%s',target)
+  } else {
+    filename=sprintf('doc/fig2_alldata_parmin.%s',target)
+  }
+  width = 8
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = width,
+                     height   = 4,
+                     dpi      = 300,
+                     filename = filename)
+  }
+  
   
   left  <- 0.75
   right <- 0.05
@@ -47,9 +62,6 @@ plotDataParmin <- function(models=FALSE, target='inline') {
   
   layout(mat=matrix(c(1:2), ncol=2), widths=c(deg15*3,deg15*4))
   par(mai=c(0.75,left,0.4,right))
-  
-  
-  
   
   
   for (maxrot in c(45,60)) {
@@ -155,12 +167,16 @@ plotDataParmin <- function(models=FALSE, target='inline') {
 
 
 plotTaskErrorEffects <- function(target='inline',posthocs=TRUE) {
+
   
-  width = 4
-  height = 8
-  if (target == 'pdf') {
-    pdf(file='doc/fig3_taskerror.pdf', width=width, height=height)
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = 4,
+                     height   = 8,
+                     dpi      = 300,
+                     filename = sprintf('doc/fig3_taskerror.%s',target))
   }
+  
   
   layout(mat=matrix(c(1:3), ncol=1))
   par(mar=c(3.25,3.25,2,0.1))
@@ -251,37 +267,13 @@ plotTaskErrorEffects <- function(target='inline',posthocs=TRUE) {
 
 plotTaskErrorEffectsParmin <- function(target='inline',posthocs=TRUE) {
   
-  width  = 8
-  height = 4
-  dpi    = 300
-  
-  filename=sprintf('doc/fig3_taskerror_parmin.%s',target)
-
-  if (target == 'pdf') {
-    pdf(file   = filename, 
-        width  = width, 
-        height = height)
-  }
-  if (target == 'svg') {
-    svglite::svglite( filename = filename,
-                      width = width,
-                      height = height,
-                      fix_text_size = FALSE)
-  }
-  if (target == 'png') {
-    png( filename = filename,
-         width = width*dpi,
-         height = height*dpi,
-         res = dpi
-    )
-  }
-  if (target == 'tiff') {
-    tiff( filename = filename,
-          compression = 'lzw',
-          width = width*dpi,
-          height = height*dpi,
-          res = dpi
-    )
+  width = 8
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = width,
+                     height   = 4,
+                     dpi      = 300,
+                     filename = sprintf('doc/fig3_taskerror_parmin.%s',target))
   }
   
   left  <- 0.75
@@ -380,37 +372,13 @@ plotTaskErrorEffectsParmin <- function(target='inline',posthocs=TRUE) {
 
 plotAverageIRDs <- function(target='inline') {
   
-  width  = 8
-  height = 4
-  dpi    = 300
-  
-  filename=sprintf('doc/fig3+_average_IRDs.%s',target)
-  
-  if (target == 'pdf') {
-    pdf(file   = filename, 
-        width  = width, 
-        height = height)
-  }
-  if (target == 'svg') {
-    svglite::svglite( filename = filename,
-                      width = width,
-                      height = height,
-                      fix_text_size = FALSE)
-  }
-  if (target == 'png') {
-    png( filename = filename,
-         width = width*dpi,
-         height = height*dpi,
-         res = dpi
-    )
-  }
-  if (target == 'tiff') {
-    tiff( filename = filename,
-          compression = 'lzw',
-          width = width*dpi,
-          height = height*dpi,
-          res = dpi
-    )
+  width = 8
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = width,
+                     height   = 4,
+                     dpi      = 300,
+                     filename = sprintf('doc/fig3+_average_IRDS.%s',target))
   }
   
   left  <- 0.75
@@ -575,22 +543,22 @@ plotAverageIRDs <- function(target='inline') {
 
 plotData <- function(models=FALSE, target='inline') {
   
-  width = 4
-  height = 8
   if (models) {
     filename=sprintf('doc/fig4_model_fits.%s',target)
   } else {
     filename=sprintf('doc/fig2_alldata.%s',target)
   }
   
-  if (target == 'pdf') {
-    if (models) {
-      pdf(file=filename, width=width, height=height)
-    } else {
-      pdf(file=filename, width=width, height=height)
-    }
+  
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = 6,
+                     height   = 7,
+                     dpi      = 300,
+                     filename = filename)
   }
   
+
   layout(mat=matrix(c(1:3), ncol=1))
   par(mar=c(3.25,3.25,2,0.1))
   
@@ -702,12 +670,13 @@ plotData <- function(models=FALSE, target='inline') {
 
 plotModelMSEs <- function(maxrots=c(45,60,90), target='inline') {
   
-  width = 4
-  height = 4
-  if (target == 'pdf') {
-    pdf(file='doc/fig5_mses.pdf', width=width, height=height)
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = 4,
+                     height   = 4,
+                     dpi      = 300,
+                     filename = sprintf('doc/fig5_mses.%s',target))
   }
-  
   
   df <- NA
   for (maxrot in maxrots) {
@@ -764,10 +733,12 @@ plotModelMSEs <- function(maxrots=c(45,60,90), target='inline') {
 
 plotLearningPrediction <- function(target='inline') {
   
-  width = 7
-  height = 8
-  if (target == 'pdf') {
-    pdf(file='doc/fig6_prediction.pdf', width=width, height=height)
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = 7,
+                     height   = 8,
+                     dpi      = 300,
+                     filename = sprintf('doc/fig6_prediction.%s',target))
   }
   
   layout(mat=matrix(c(1:9),ncol=3,byrow=TRUE),widths=c(1.9,1,1))
@@ -850,10 +821,12 @@ plotLearningPrediction <- function(target='inline') {
 
 plotFirstTrialFits <- function(target='inline') {
   
-  width = 7
-  height = 4
-  if (target == 'pdf') {
-    pdf(file='doc/fig7_exp1st.pdf', width=width, height=height)
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = 7,
+                     height   = 4,
+                     dpi      = 300,
+                     filename = sprintf('doc/fig7_exp1st.%s',target))
   }
   
   layout(mat=matrix(c(1:3),ncol=3,byrow=TRUE))
@@ -920,10 +893,12 @@ plotFirstTrialFits <- function(target='inline') {
 
 plotTimeOnTask <- function(target='inline') {
   
-  width = 7
-  height = 7
-  if (target == 'pdf') {
-    pdf(file='doc/fig8_tot.pdf', width=width, height=height)
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = 7,
+                     height   = 7,
+                     dpi      = 300,
+                     filename = sprintf('doc/fig8_ToT.%s',target))
   }
   
   layout(mat=matrix(c(1:4),ncol=2,byrow=TRUE))
