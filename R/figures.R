@@ -429,7 +429,7 @@ plotAverageIRDs <- function(target='inline') {
   colsT <- c()
   colsO <- c()
   for (rot in c(0:60)) {
-    colsT <- c(colsT, Reach::colorMix('#FF000055','#0000FF55',c(rot,max(all_rots)-rot)) )
+    colsT <- c(colsT, Reach::colorMix('#FF000033','#0000FF33',c(rot,max(all_rots)-rot)) )
     colsO <- c(colsO, Reach::colorMix('#FF0000','#0000FF',c(rot,max(all_rots)-rot)) )
   }
   
@@ -449,13 +449,13 @@ plotAverageIRDs <- function(target='inline') {
     
     lines(x=c(-12,18),
           y=c(0,0),
-          lty=1,col='#666666')
+          lty=1,col='#999999')
     lines(x=c(0,0),
           y=c(-12,18),
-          lty=1,col='#666666')
+          lty=1,col='#999999')
     lines(x=c(-12,18),
           y=c(-12,18),
-          lty=1,col='#666666')
+          lty=1,col='#999999')
     
     df <- loadSTLdata(average=median, maxrots=c(maxrot))
     
@@ -476,10 +476,74 @@ plotAverageIRDs <- function(target='inline') {
       points(x = rot_df$response[which(rot_df$target=='point')],
              y = rot_df$response[which(rot_df$target=='arc')],
              pch = 16,
-             col = colsT[rot])
+             col = colsT[rot],
+             cex=1.4)
       
       
     }
+    
+    dot_df <- aggregate(response ~ participant + rotation, data = df[which(df$target=='point'),], FUN=mean)
+    names(dot_df)[which(names(dot_df) == 'response')] <- 'dot'
+    arc_df <- aggregate(response ~ participant + rotation, data = df[which(df$target=='arc'),], FUN=mean)
+    names(arc_df)[which(names(arc_df) == 'response')] <- 'arc'
+    
+    dotarc <- merge(dot_df,
+                    arc_df,
+                    by = c('participant','rotation'))
+    # print(str(dotarc))
+    
+
+    rot_lm <- lm(arc ~ dot, data=dotarc)
+    
+    # rot_lm <- lm(df$response[which(rot_df$target=='point')] ~ df$response[which(rot_df$target=='point')])
+    intercept <- rot_lm$coefficients[1]
+    slope     <- rot_lm$coefficients[2]
+    dotrange <- range(dotarc$dot)
+    
+    correlation <- cor.test(dotarc$dot, dotarc$arc)
+    # print(names(correlation))
+    r.stat <- correlation$estimate # the r
+    
+    text(18,-10,sprintf('r = %0.3f',r.stat),adj=1)
+    
+    # lines(x=dotrange,
+    #       y=(dotrange*slope)+intercept,
+    #       col='#000000',
+    #       lw=1.5)
+    
+    odr <- Reach::odregress(x=dotarc$dot,
+                            y=dotarc$arc)
+    # print(odr$coeff)
+    # print(odr$r)
+    
+    # lines(x=dotrange,
+    #       y=(dotrange*odr$coeff[1])+odr$coeff[2],
+    #       col='#000000',
+    #       lw=1.5)
+    
+    
+    # da_lo  <- dotarc[which(dotarc$rotation < 12.5),]
+    # str(da_lo)
+    # odr_lo <- Reach::odregress(x=da_lo$dot,
+    #                            y=da_lo$arc)
+    # lo_range <- range(da_lo$dot, na.rm=TRUE)
+    # lines(x=lo_range,
+    #       y=(lo_range*odr_lo$coeff[1])+odr_lo$coeff[2],
+    #       col='#0000FF',
+    #       lw=1.5)
+    
+    
+    
+    # da_hi  <- dotarc[which(dotarc$rotation > 12.5),]
+    # str(da_hi)
+    # odr_hi <- Reach::odregress(x=da_hi$dot,
+    #                            y=da_hi$arc)
+    # hi_range <- range(da_hi$dot)
+    # # print(da_hi$response)
+    # lines(x=hi_range,
+    #       y=(hi_range*odr_hi$coeff[1])+odr_hi$coeff[2],
+    #       col='#FF0000',
+    #       lw=1.5)
     
     axis(side=1,at=c(-12,-6,0,6,12,18),cex.axis=0.75)
     axis(side=2,at=c(-12,-6,0,6,12,18),cex.axis=0.75)
