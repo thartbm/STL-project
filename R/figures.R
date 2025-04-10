@@ -370,7 +370,7 @@ plotTaskErrorEffectsParmin <- function(target='inline',posthocs=TRUE) {
 }
 
 
-plotAverageIRDs <- function(target='inline') {
+plotAverageRotIRDs <- function(target='inline') {
   
   width = 8
   if (target %in% c('pdf','svg','png','tiff')) {
@@ -378,7 +378,7 @@ plotAverageIRDs <- function(target='inline') {
                      width    = width,
                      height   = 4,
                      dpi      = 300,
-                     filename = sprintf('doc/fig3+_average_IRDS.%s',target))
+                     filename = sprintf('doc/fig3+_average_rot_IRDS.%s',target))
   }
   
   left  <- 0.75
@@ -427,14 +427,6 @@ plotAverageIRDs <- function(target='inline') {
     
     df <- loadSTLdata(average=median, maxrots=c(maxrot))
     
-
-    # ttagg <- aggregate(response ~ target + participant, data=df, FUN=mean)
-    # 
-    # points(x = ttagg$response[which(ttagg$target=='point')],
-    #        y = ttagg$response[which(ttagg$target=='arc')],
-    #        pch = 16,
-    #        col = '#9900FF99')
-    
     rotations <- unique(df$rotation)
     
     for (rot in rotations) {
@@ -458,12 +450,10 @@ plotAverageIRDs <- function(target='inline') {
     dotarc <- merge(dot_df,
                     arc_df,
                     by = c('participant','rotation'))
-    # print(str(dotarc))
     
 
     rot_lm <- lm(arc ~ dot, data=dotarc)
     
-    # rot_lm <- lm(df$response[which(rot_df$target=='point')] ~ df$response[which(rot_df$target=='point')])
     intercept <- rot_lm$coefficients[1]
     slope     <- rot_lm$coefficients[2]
     dotrange <- range(dotarc$dot)
@@ -474,44 +464,10 @@ plotAverageIRDs <- function(target='inline') {
     
     text(18,-10,sprintf('r = %0.3f',r.stat),adj=1)
     
-    # lines(x=dotrange,
-    #       y=(dotrange*slope)+intercept,
-    #       col='#000000',
-    #       lw=1.5)
     
     odr <- Reach::odregress(x=dotarc$dot,
                             y=dotarc$arc)
-    # print(odr$coeff)
-    # print(odr$r)
     
-    # lines(x=dotrange,
-    #       y=(dotrange*odr$coeff[1])+odr$coeff[2],
-    #       col='#000000',
-    #       lw=1.5)
-    
-    
-    # da_lo  <- dotarc[which(dotarc$rotation < 12.5),]
-    # str(da_lo)
-    # odr_lo <- Reach::odregress(x=da_lo$dot,
-    #                            y=da_lo$arc)
-    # lo_range <- range(da_lo$dot, na.rm=TRUE)
-    # lines(x=lo_range,
-    #       y=(lo_range*odr_lo$coeff[1])+odr_lo$coeff[2],
-    #       col='#0000FF',
-    #       lw=1.5)
-    
-    
-    
-    # da_hi  <- dotarc[which(dotarc$rotation > 12.5),]
-    # str(da_hi)
-    # odr_hi <- Reach::odregress(x=da_hi$dot,
-    #                            y=da_hi$arc)
-    # hi_range <- range(da_hi$dot)
-    # # print(da_hi$response)
-    # lines(x=hi_range,
-    #       y=(hi_range*odr_hi$coeff[1])+odr_hi$coeff[2],
-    #       col='#FF0000',
-    #       lw=1.5)
     
     axis(side=1,at=c(-12,-6,0,6,12,18),cex.axis=0.75)
     axis(side=2,at=c(-12,-6,0,6,12,18),cex.axis=0.75)
@@ -538,6 +494,140 @@ plotAverageIRDs <- function(target='inline') {
   }
   
 }
+
+
+plotAverageIRDs <- function(target='inline',variables='og') {
+  
+  width = 8
+  if (target %in% c('pdf','svg','png','tiff')) {
+    setupFigureFile( target   = target,
+                     width    = width,
+                     height   = 4,
+                     dpi      = 300,
+                     filename = sprintf('doc/fig3+_average_rot_IRDS.%s',target))
+  }
+  
+  left  <- 0.75
+  right <- 0.05
+  
+  deg15 <- (width - ((left + right) * 2)) / 7
+  
+  layout(mat=matrix(c(1:2), ncol=2))
+  par(mai=c(0.75,left,0.4,right))
+  
+  # set up color map:
+  
+  df <- loadSTLdata(average=median, maxrots=c(45,60))
+  all_rots <- sort(unique(df$rotation))
+  
+  # colT <- Reach::colorMix('#FF000033','#0000FF33',c(2,3))
+  # colO <- Reach::colorMix('#FF0000','#0000FF',c(2,4))
+  
+  colors <- c('#9900FFFF', '#9900FF33')
+  
+  for (maxrot in c(45,60)) {
+    
+    plot(x=-1000,y=-1000,
+         main=sprintf('%d° max rotation',maxrot),ylab='',xlab='',
+         # xlim=c(0,maxrot+1),
+         xlim=c(-3,9),
+         ylim=c(-3,9),
+         ax=F,bty='n',asp=1)
+    
+    if (variables == 'og') {
+      title(ylab='arc initial reach deviation [°]',line=2.25)
+      title(xlab='dot initial reach deviation [°]',line=2.25)
+    }
+    if (variables == 'flipped') {
+      title(ylab='dot initial reach deviation [°]',line=2.25)
+      title(xlab='arc initial reach deviation [°]',line=2.25)
+    }
+    
+    lines(x=c(-3,9),
+          y=c(0,0),
+          lty=1,col='#999999')
+    lines(x=c(0,0),
+          y=c(-3,9),
+          lty=1,col='#999999')
+    lines(x=c(-3,9),
+          y=c(-3,9),
+          lty=1,col='#999999')
+    
+    df <- loadSTLdata(average=median, maxrots=c(maxrot))
+    
+    
+    rot_df <- aggregate(response ~ participant + target, data=df, FUN=mean)
+    
+    if (variables == 'og') {
+      points(x = rot_df$response[which(rot_df$target=='point')],
+             y = rot_df$response[which(rot_df$target=='arc')],
+             pch = 1,
+             col = colors[1],
+             cex=1.4)
+    }
+    if (variables == 'flipped') {
+      points(x = rot_df$response[which(rot_df$target=='arc')],
+             y = rot_df$response[which(rot_df$target=='point')],
+             pch = 1,
+             col = colors[1],
+             cex=1.4)
+    }
+    cat(sprintf("%s group dot & point correlation\n", maxrot))
+    
+    lm_df <- rot_df[which(rot_df$target == 'point'),]
+    lm_df$target <- NULL # remove the column
+    names(lm_df) <- c('participant', 'point')
+    lm_df$arc <- rot_df$response[which(rot_df$target == 'arc')]
+    
+    if (variables == 'og') {
+      lmod <- lm(arc ~ point, data=lm_df)
+    }
+    if (variables == 'flipped') {
+      lmod <- lm(point ~ arc, data=lm_df)
+    }
+    print(summary(lmod))
+    
+    coef <- lmod$coef
+    if (variables == 'og') {
+      Xrange <- range(rot_df$response[which(rot_df$target=='point')])
+    }
+    if (variables == 'flipped') {
+      Xrange <- range(rot_df$response[which(rot_df$target=='arc')])
+    }
+    
+    X <- seq(Xrange[1],Xrange[2],len=100)
+    
+    if (variables == 'og') {
+      predlm <- predict(lmod, newdata=data.frame(point=X), se.fit = TRUE)
+    }
+    if (variables == 'flipped') {
+      predlm <- predict(lmod, newdata=data.frame(arc=X), se.fit = TRUE)
+    }
+    
+    polygon(x=c(X,rev(X)),
+            y=c(predlm$fit + 1.96*predlm$se.fit, rev(predlm$fit - 1.96*predlm$se.fit)),
+            col=colors[2],
+            border=NA)
+    lines(x=X,
+          y=predlm$fit,
+          col=colors[1])
+    
+    axis(side=1,at=c(-3,0,3,6,9),cex.axis=0.75)
+    axis(side=2,at=c(-3,0,3,6,9),cex.axis=0.75)
+    
+    
+  }
+  
+  
+  
+  if (target %in% c('pdf','svg','png','tiff')) {
+    dev.off()
+  }
+  
+}
+
+
+
 
 # initial reach deviation over rotation -----
 
